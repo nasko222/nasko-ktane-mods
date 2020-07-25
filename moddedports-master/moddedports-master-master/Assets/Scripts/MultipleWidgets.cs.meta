@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 88b8365a7ca1a2e448839675880f476f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - Ports: {instanceID: 0}
+  - HDMIPort: {instanceID: 0}
+  - USBPort: {instanceID: 0}
+  - ComponentVideoPort: {instanceID: 0}
+  - CompositeVideoPort: {instanceID: 0}
+  - ACPort: {instanceID: 0}
+  - PCMCIAPort: {instanceID: 0}
+  - VGAPort: {instanceID: 0}
+  - ACPortFiller: {instanceID: 0}
+  - USBPortFiller: {instanceID: 0}
+  - CompositeVideoPortFiller: {instanceID: 0}
+  - ComponentVideoPortFiller: {instanceID: 0}
+  - HDMIPortFiller: {instanceID: 0}
+  - MultipleWidgetTopHalf: {instanceID: 0}
+  - Info: {instanceID: 0}
+  - RuleSeed: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,36 @@
+{
+	"SettingsVersion" : 1,
+	"HowToUse0": "Don't Touch this value. It is used by the mod internally to determine if there are new settings to be saved.",
+
+	"EnableExtendedPorts": true,
+	"HowToUse1_1": "If Enabled, The following port types will be enabled:",
+	"HowToUse1_2": "HDMI, USB, PCMCIA, VGA, Component Video, Composite Video, 120/240V AC",
+
+	"EnableExtendedBatteries": true,
+	"HowToUse2": "If Enabled, The following battery counts in 1 holder can spawn: 0, 3, 4",
+
+	"EnableIndicatorColors": true,
+	"HowToUse3": "If Enabled, You will see Indicator light colors other than white. These are still treated as On indicators.",
+
+	"EnableEncryptedIndicators": false,
+	"MaxEncryptedIndicators": 2,
+	"EncryptionProbability": 0.50,
+	"HowToUse4_1": "If Enabled, Some of the Indicators up to a max count per bomb will be encrypted. Refer to",
+	"HowToUse4_2": "http://steamcommunity.com/sharedfiles/filedetails/?id=1060194010 to see how Encrypted Indicators work.",
+	"HowToUse4_3": "This also stacks with colors if enabled as well.",
+	"HowToUse4_4": "EncryptionProbability is a number between 0.0 to 1.0, and determines how likely the indicators will be encrypted.",
+
+	"EnableTwoFactor": true,
+	"TwoFactorDuration": 60,
+	"HowToUse7": "If Enabled, Two factor has a possibilty to spawn.",
+	"HowToUse7_2": "TwoFactorDuration is a number between 30 and 120 seconds (half a minute to two minutes)",
+
+	"DebugModeForceAllPortsInCurrentSet": false,
+	"HowToUse5": "This forces the port plates to have every type possible in the given set.",
+
+	"DebugModeForceAllPossiblePorts": false,
+	"HowToUse5_2": "This Forces every port from the first port plate sets to spwan. (This overrides DebugModeForceAllPortsInCurrentSet)",
+
+	"DebugModeBatteries": false,
+	"HowToUse6": "This forces the battery count to be 0, 3 or 4. Never 1 or 2."
+}
