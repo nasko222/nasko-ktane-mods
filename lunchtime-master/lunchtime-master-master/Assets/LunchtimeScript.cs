@@ -349,18 +349,27 @@ public class LunchtimeScript : MonoBehaviour
 			else if (mins == 9) {Minutes.text = "09";}
 			else { Minutes.text = mins.ToString(); }
 			KMAudio.PlaySoundAtTransform(TickingSound.name, transform);
-			if (mins == 0 && secs == 0) { Exploded = true; Debug.LogFormat("[Lunchtime #{0}] You took too long to deliver the food, your boss isn't gonna be happy about this...", moduleId); StartCoroutine(bomba()); BossWaitForLunch = false; }
+			if (mins == 0 && secs == 0) { if (!TwitchPlaysActive) Exploded = true; Debug.LogFormat("[Lunchtime #{0}] You took too long to deliver the food, your boss isn't gonna be happy about this...", moduleId); StartCoroutine(bomba()); if (!TwitchPlaysActive) BossWaitForLunch = false; }
 			yield return new WaitForSeconds(1.0f);
 		}
 	}
 	
 	private IEnumerator bomba()
 	{
-		while (Exploded)
-		{
-			BombModule.HandleStrike();
-			yield return new WaitForSeconds(0.5f);
-		}
+        if (TwitchPlaysActive)
+        {
+            BombModule.HandleStrike();
+            mins = UnityEngine.Random.Range(8, 13);
+            secs = UnityEngine.Random.Range(24, 49);
+        }
+        else
+        {
+            while (Exploded)
+            {
+                BombModule.HandleStrike();
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
 	}
 	
 	protected bool UpFunc()
@@ -488,8 +497,9 @@ public class LunchtimeScript : MonoBehaviour
 
     //twitch plays
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} buy <food> [Buys the specified meal] | !{0} deliver (at ##) [Presses the deliver button (optionally when the ten's and one's place in the module's timer is '##')] | Multiple times may be included in the deliver command, for ex. '!{0} deliver at 07 40 23'";
-    private bool TwitchZenMode = false;
+    private readonly string TwitchHelpMessage = @"!{0} buy <food> [Buys the specified meal] | !{0} deliver (at ##) [Presses the deliver button (optionally when the ten's and one's place in the module's timer is '##')] | Multiple times may be included in the deliver command, for ex. '!{0} deliver at 07 40 23' | On Twitch Plays instead of exploding the bomb if the timer runs out this module will strike once and then reset the timer";
+    private bool TwitchZenMode;
+    private bool TwitchPlaysActive;
     #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command)
     {
@@ -710,15 +720,6 @@ public class LunchtimeScript : MonoBehaviour
 
     IEnumerator TwitchHandleForcedSolve()
     {
-        if (Exploded)
-        {
-            Debug.LogFormat("[Lunchtime #{0}] Stopping bomb explosion due to force solve command... The timer has been reset!");
-            Exploded = false;
-            mins = UnityEngine.Random.Range(8, 13);
-            secs = UnityEngine.Random.Range(24, 49);
-            BossWaitForLunch = true;
-            StartCoroutine(loop());
-        }
         while (!BossWaitForLunch) { yield return new WaitForSeconds(0.1f); }
         if (unicorn)
         {
