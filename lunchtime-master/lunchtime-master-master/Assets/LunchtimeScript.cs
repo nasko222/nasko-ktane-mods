@@ -149,7 +149,7 @@ public class LunchtimeScript : MonoBehaviour
         else if (cash >= 2.05f && sandwiches && twovowels && dairy) { correct = 10; cashafter = cash - 2.05f; }
         else if (cash >= 2.04f && plates && vegetables) { correct = 28; cashafter = cash - 2.04f; }
         else if (cash >= 1.91f && sandwiches && vegetables && dairy) { correct = 3; cashafter = cash - 1.91f; }
-        else if (cash >= 1.81f && plates) { correct = 9; cashafter = cash - 1.81f; }
+        else if (cash >= 1.81f && plates) { correct = 11; cashafter = cash - 1.81f; }
         else if (cash >= 1.69f && plates && vegetables) { correct = 24; cashafter = cash - 1.69f; }
         else if (cash >= 1.24f) { correct = 6; cashafter = cash - 1.24f; }
         else { correct = 14; }
