@@ -96,8 +96,8 @@ public class LunchtimeScript : MonoBehaviour
         parallelport = BombInfo.GetPortCount(Port.Parallel);
         if (batteries > 4) { cash = cash + 0.61f; }
         else if (BombInfo.IsIndicatorOn("FRK") && parallelport == 0) { cash = cash + 0.43f; }
+	else if (BombInfo.CountUniquePorts() > 2) { cash = cash + 0.18f; }
         else if (BombInfo.IsIndicatorPresent("FRQ") && BombInfo.IsIndicatorPresent("CAR")) { subtract = true; cash = cash - 1.00f; }
-        else if (BombInfo.CountUniquePorts() > 2) { cash = cash + 0.18f; }
         else if (ContainsVowel()) { cash = cash + 0.37f; }
         else { moneyChanged = false; }
 
