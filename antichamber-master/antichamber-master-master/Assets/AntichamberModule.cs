@@ -9,7 +9,6 @@ using System;
 public class AntichamberModule : MonoBehaviour
 {
 
-	public KMBomb Bomb;
 	public KMBombInfo BombInfo;
 	public KMBombModule BombModule;
 	public KMSelectable GunButton;

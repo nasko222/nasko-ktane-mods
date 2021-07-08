@@ -16,5 +16,5 @@ MonoBehaviour:
   author: nasko222
   description: A mind blowing game into a mind blowing game.
   version: 1.0
-  outputFolder: G:\Steam\steamapps\common\Keep Talking and Nobody Explodes\mods
+  outputFolder: build
   previewImage: {fileID: 2800000, guid: 9a5bedbd67c744744b4d82e48c670a99, type: 3}

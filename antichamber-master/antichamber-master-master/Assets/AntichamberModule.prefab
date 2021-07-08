@@ -1152,7 +1152,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d85057fff2ebd545ad6fdf8c39420e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bomb: {fileID: 0}
   BombInfo: {fileID: 114942736225624160}
   BombModule: {fileID: 114546115864015956}
   GunButton: {fileID: 114008769496557868}
