@@ -653,15 +653,21 @@ public class LunchtimeScript : MonoBehaviour
                         int r = result[i];
                         if (!minutes && !TwitchZenMode)
                         {
-                            waitingMusic &= ((target + (r > target ? 60 : 0)) - r) > 15;
+                            if (target == r)
+                                waitingMusic &= true;
+                            else
+                                waitingMusic &= ((target + (r > target ? 60 : 0)) - r) > 15;
                         }
                         else if (!minutes)
                         {
-                            waitingMusic &= ((r + (r < target ? 60 : 0)) - target) > 15;
+                            if (target == r)
+                                waitingMusic &= true;
+                            else
+                                waitingMusic &= ((r + (r < target ? 60 : 0)) - target) > 15;
                         }
                         else if (!TwitchZenMode)
                         {
-                            if (r > target)
+                            if (r >= target)
                             {
                                 result.RemoveAt(i);
                                 continue;
@@ -670,7 +676,7 @@ public class LunchtimeScript : MonoBehaviour
                         }
                         else
                         {
-                            if (r < target)
+                            if (r <= target)
                             {
                                 result.RemoveAt(i);
                                 continue;
@@ -688,6 +694,15 @@ public class LunchtimeScript : MonoBehaviour
                     if (waitingMusic)
                         yield return "waiting music";
 
+                    if (!minutes && result.Contains(target))
+                    {
+                        string cur = Seconds.text;
+                        while (cur.Equals(Seconds.text))
+                        {
+                            yield return "trycancel The delivery was not made due to a request to cancel";
+                            target = (mins * 60 + secs);
+                        }
+                    }
                     while (!result.Contains(target))
                     {
                         yield return "trycancel The delivery was not made due to a request to cancel";
@@ -720,7 +735,7 @@ public class LunchtimeScript : MonoBehaviour
 
     IEnumerator TwitchHandleForcedSolve()
     {
-        while (!BossWaitForLunch) { yield return new WaitForSeconds(0.1f); }
+        while (!BossWaitForLunch) { yield return null; }
         if (unicorn)
         {
             int start = clicked;
