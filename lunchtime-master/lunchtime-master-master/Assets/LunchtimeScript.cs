@@ -101,10 +101,14 @@ public class LunchtimeScript : MonoBehaviour
         else if (ContainsVowel()) { cash = cash + 0.37f; }
         else { moneyChanged = false; }
 
-        dbat = BombInfo.GetBatteryCount(Battery.AA);
-        aabat = BombInfo.GetBatteryCount(Battery.D);
-        if (dbat > aabat) { sandwiches = true; }
-        else if (aabat > dbat) { plates = true; }
+        cash = cash * 100;
+        cash = Mathf.Round(cash);
+        cash = cash / 100;
+
+        aabat = BombInfo.GetBatteryCount(Battery.AA);
+        dbat = BombInfo.GetBatteryCount(Battery.D);
+        if (aabat > dbat) { sandwiches = true; }
+        else if (dbat > aabat) { plates = true; }
         else if (aabat == dbat) { sandwiches = true; plates = true; }
 
         ports = BombInfo.GetPortCount();
