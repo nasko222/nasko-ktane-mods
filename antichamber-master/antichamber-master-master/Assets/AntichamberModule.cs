@@ -8,7 +8,6 @@ using System;
 
 public class AntichamberModule : MonoBehaviour
 {
-
 	public KMBombInfo BombInfo;
 	public KMBombModule BombModule;
 	public KMSelectable GunButton;
@@ -20,72 +19,22 @@ public class AntichamberModule : MonoBehaviour
 	public GameObject Gun;
 	public Sprite[] guns;
 	public string[] rooms;
+	bool? unicornRule;
+	bool? lastDigitRule;
+	bool? doubleOhRule;
+	bool? duplicateRule;
 
-	private bool AntichamberUnicornP1
-	{
-		get
-		{
-			return this.BombInfo.GetSerialNumber().Any(x => new[] { '1' }.Contains(x));
-		}
-	}
-
-	private bool AntichamberUnicornP2
-	{
-		get
-		{
-			return this.BombInfo.GetSerialNumber().Any(x => new[] { '3' }.Contains(x));
-		}
-	}
-
-	private int counter = 0;
-	private IEnumerable<string> duplicates;
+	bool ModuleSolved;
+    static int ModuleIdCounter = 1;
+    int ModuleId;
 
 	int gun = 0;
 	int roomindex = 0;
 	int determine = 0;
 
-	int solved;
-	int unsolved;
-	int allmodules;
+    readonly string[] gunColors = new string[] {"Blue", "Green", "Yellow", "Red" };
 
-	int batteries;
-	int holders;
-	int lastDigit;
-	int strikes;
-
-	int vanillaports;
-	int moddedports;
-
-	int PortParallel;
-	int PortSerial;
-	int PortDVI;
-	int PortStereoRCA;
-	int PortRJ45;
-	int PortPS2;
-
-	int ModdedPortCompositeVideo;
-	int ModdedPortComponentVideo;
-	int ModdedPortUSB;
-	int ModdedPortHDMI;
-	int ModdedPortVGA;
-	int ModdedPortAC;
-	int ModdedPortPCMCIA;
-
-	int module3dmaze;
-	int module3dtunnels;
-	int maze;
-	int mousemaze;
-	int morsemaze;
-
-	int password;
-	int extended;
-	int binarypuzzle;
-	int symbolic;
-
-	int doubleoh;
-	int cursedoh;
-
-	private int AdjustNumber(int value, int adjustWith)
+    private int AdjustNumber(int value, int adjustWith)
 	{
 		if (value <= 0)
 		{
@@ -105,351 +54,144 @@ public class AntichamberModule : MonoBehaviour
 		return value;
 	}
 
-	void Start()
+	void Awake()
 	{
-		gun = UnityEngine.Random.Range(0, 4);
+		ModuleId = ModuleIdCounter++;
+    }
+
+    void Start()
+	{
+        gun = UnityEngine.Random.Range(0, 4);
 		roomindex = UnityEngine.Random.Range(0, 13);
-		GunButton.OnInteract += GunButtonCode;
-		ArrowLeft.OnInteract += LeftButtonCode;
-		ArrowRight.OnInteract += RightButtonCode;
-		Submit.OnInteract += SubmitEvent;
+		GunButton.OnInteract += delegate () { GunButtonCode(); return false; };
+		ArrowLeft.OnInteract += delegate () { ArrowButtonCode(false); return false; };
+        ArrowRight.OnInteract += delegate () { ArrowButtonCode(true); return false; };
+        Submit.OnInteract += delegate () { SubmitEvent(); return false; };
 		Gun.GetComponent<SpriteRenderer>().sprite = guns[gun];
 		RoomLabel.text = rooms[roomindex];
-		lastDigit = BombInfo.GetSerialNumberNumbers().Last();
-		duplicates = BombInfo.GetModuleNames().
-		GroupBy(x => x).
-		Where(group => group.Count() > 1).
-		Select(group => group.Key);
 
 		//Count Vanilla Ports
-		PortParallel = BombInfo.GetPortCount(Port.Parallel);
-		PortSerial = BombInfo.GetPortCount(Port.Serial);
-		PortDVI = BombInfo.GetPortCount(Port.DVI);
-		PortStereoRCA = BombInfo.GetPortCount(Port.StereoRCA);
-		PortRJ45 = BombInfo.GetPortCount(Port.RJ45);
-		PortPS2 = BombInfo.GetPortCount(Port.PS2);
+        int vanillaports = new Port[] { Port.Parallel, Port.Serial, Port.DVI, Port.StereoRCA, Port.RJ45, Port.PS2 }.Sum(p => BombInfo.GetPortCount(p));
 
-		vanillaports = PortParallel + PortSerial + PortDVI + PortStereoRCA + PortRJ45 + PortPS2;
+        //Count Modded Ports
+        int moddedports = new Port[] { Port.CompositeVideo, Port.ComponentVideo, Port.USB, Port.HDMI, Port.VGA, Port.AC, Port.PCMCIA }.Sum(p => BombInfo.GetPortCount(p));
 
-		//Count Modded Ports
-		ModdedPortCompositeVideo = BombInfo.GetPortCount(Port.CompositeVideo);
-		ModdedPortComponentVideo = BombInfo.GetPortCount(Port.ComponentVideo);
-		ModdedPortUSB = BombInfo.GetPortCount(Port.USB);
-		ModdedPortHDMI = BombInfo.GetPortCount(Port.HDMI);
-		ModdedPortVGA = BombInfo.GetPortCount(Port.VGA);
-		ModdedPortAC = BombInfo.GetPortCount(Port.AC);
-		ModdedPortPCMCIA = BombInfo.GetPortCount(Port.PCMCIA);
-
-		moddedports = ModdedPortCompositeVideo + ModdedPortComponentVideo + ModdedPortUSB + ModdedPortHDMI + ModdedPortVGA + ModdedPortAC + ModdedPortPCMCIA;
-
-		holders = BombInfo.GetBatteryHolderCount();
-		batteries = BombInfo.GetBatteryCount();
+		int holders = BombInfo.GetBatteryHolderCount();
+		int batteries = BombInfo.GetBatteryCount();
 
 		determine = (vanillaports - moddedports) * (batteries + holders);
 		determine = this.AdjustNumber(determine, 4);
 
-		//Debug Output Log
-		Debug.Log("AntichamberGun = " + determine);
-		Debug.Log("SelectedGun = " + (gun + 1));
-		Debug.Log("UnicornP1 = " + AntichamberUnicornP1);
-		Debug.Log("UnicornP2 = " + AntichamberUnicornP2);
+        Log(string.Format("Vanilla Ports: {0}", vanillaports));
+		Log(string.Format("Modded Ports: {0}", moddedports));
+		Log(string.Format("Batteries: {0}", batteries));
+		Log(string.Format("Battery holders: {0}", holders));
 	}
 
-	void Update()
-	{
-		counter++;
-		if (counter == 30)
-		{
-			solved = BombInfo.GetSolvedModuleNames().Count;
-			allmodules = BombInfo.GetSolvableModuleNames().Count;
-			unsolved = allmodules - solved;
-			strikes = BombInfo.GetStrikes();
-
-			//Count Solved Modules
-			module3dmaze = BombInfo.GetSolvedModuleNames().Count(x => x == "3D Maze");
-			module3dtunnels = BombInfo.GetSolvedModuleNames().Count(x => x == "3D Tunnels");
-			maze = BombInfo.GetSolvedModuleNames().Count(x => x == "Maze");
-			mousemaze = BombInfo.GetSolvedModuleNames().Count(x => x == "Mouse In The Maze");
-			morsemaze = BombInfo.GetSolvedModuleNames().Count(x => x == "Morse-A-Maze");
-
-			//Count Unsolved Modules
-			password = BombInfo.GetSolvableModuleNames().Count(x => x == "Password") - BombInfo.GetSolvedModuleNames().Count(x => x == "Password");
-			extended = BombInfo.GetSolvableModuleNames().Count(x => x == "Extended Password") - BombInfo.GetSolvedModuleNames().Count(x => x == "Extended Password");
-			binarypuzzle = BombInfo.GetSolvableModuleNames().Count(x => x == "Binary Puzzle") - BombInfo.GetSolvedModuleNames().Count(x => x == "Binary Puzzle");
-			symbolic = BombInfo.GetSolvableModuleNames().Count(x => x == "Symbolic Password") - BombInfo.GetSolvedModuleNames().Count(x => x == "Symbolic Password");
-
-			//Count All Modules
-			doubleoh = BombInfo.GetSolvableModuleNames().Count(x => x == "Double-Oh");
-			cursedoh = BombInfo.GetSolvableModuleNames().Count(x => x == "Cursed Double-Oh");
-
-			counter = 0;
-		}
-	}
-
-	protected bool GunButtonCode()
+	protected void GunButtonCode()
 	{
 		KMAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, GunButton.transform);
 		GunButton.AddInteractionPunch();
-		gun++;
+        if (ModuleSolved)
+            return;
+
+        gun++;
 		if (gun >= 4) gun = 0;
 		Gun.GetComponent<SpriteRenderer>().sprite = guns[gun];
-		return false;
 	}
 
-	protected bool LeftButtonCode()
-	{
-		KMAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, ArrowLeft.transform);
-		ArrowLeft.AddInteractionPunch();
-		roomindex--;
-		if (roomindex < 0) roomindex = 12;
-		RoomLabel.text = rooms[roomindex];
-		return false;
-	}
+	protected void ArrowButtonCode(bool right)
+	{ 
+		KMSelectable selectable = right ? ArrowRight : ArrowLeft;
+        KMAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, selectable.transform);
+        selectable.AddInteractionPunch();
 
-	protected bool RightButtonCode()
-	{
-		KMAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, ArrowRight.transform);
-		ArrowRight.AddInteractionPunch();
-		roomindex++;
-		if (roomindex > 12) roomindex = 0;
-		RoomLabel.text = rooms[roomindex];
-		return false;
-	}
+		if (ModuleSolved)
+			return;
 
-	protected bool SubmitEvent()
+		roomindex = right ? Modulo(roomindex + 1, rooms.Length) : Modulo(roomindex - 1, rooms.Length);
+        RoomLabel.text = rooms[roomindex];
+    }
+
+    private int Modulo(int value, int modulo) { return ((value % modulo) + modulo) % modulo; }
+
+	protected void SubmitEvent()
 	{
 		KMAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, Submit.transform);
 		Submit.AddInteractionPunch();
-		if (!AntichamberUnicornP1 || !AntichamberUnicornP2)
-		{
-			if ((gun + 1) == determine)
-			{
-				if (solved >= 3)
-				{
-					if (roomindex == 0)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (lastDigit >= 8)
-				{
-					if (roomindex == 10)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (module3dmaze >= 1 || module3dtunnels >= 1 || maze >= 1 || mousemaze >= 1 || morsemaze >= 1)
-				{
-					if (roomindex == 6)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (strikes > 0)
-				{
-					if (roomindex == 3)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (password >= 1 || symbolic >= 1 || extended >= 1 || binarypuzzle >= 1)
-				{
-					if (roomindex == 1)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (solved == 0)
-				{
-					if (roomindex == 9)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (doubleoh >= 1 || cursedoh >= 1)
-				{
-					if (roomindex == 11)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (duplicates.Any())
-				{
-					if (roomindex == 2)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else
-				{
-					if (roomindex == 12)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-			}
-			else
-			{
-				ModuleFail();
-				return false;
-			}
-		}
+		if(ModuleSolved)
+			return;
+
+		string correctRoom = GetCorrectRoom().ToLower();
+		string expectedRoom = rooms[roomindex].ToLower();
+
+        Log(string.Format("Submitted the {0} gun in {1}", gunColors[gun], expectedRoom));
+		Log(string.Format("Expected the {0} gun in {1}", gunColors[determine - 1], correctRoom));
+
+
+		if (gunColors[determine - 1] == gunColors[gun] && expectedRoom == correctRoom)
+			ModuleCompleted();
+
 		else
-		{
-			if ((gun + 1) == determine)
-			{
-				if (determine == 1)
-				{
-					if (roomindex == 8)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (determine == 2)
-				{
-					if (roomindex == 7)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (determine == 3)
-				{
-					if (roomindex == 5)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else if (determine == 4)
-				{
-					if (roomindex == 4)
-					{
-						ModuleCompleted();
-						return false;
-					}
-					else
-					{
-						ModuleFail();
-						return false;
-					}
-				}
-				else
-				{
-					ModuleFail();
-					return false;
-				}
-			}
-			ModuleFail();
-			return false;
-		}
+            ModuleFail();
 	}
 
-	protected bool FailHandlePassGun()
+	private string GetCorrectRoom()
 	{
-		KMAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, GunButton.transform);
-		GunButton.AddInteractionPunch();
-		return false;
-	}
+		string serialNumber = BombInfo.GetSerialNumber();
 
-	protected bool FailHandlePassLeft()
-	{
-		KMAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, ArrowLeft.transform);
-		ArrowLeft.AddInteractionPunch();
-		return false;
-	}
+        if (unicornRule == null)
+			unicornRule = new char[] { '1', '3' }.All(c => serialNumber.Contains(c));
 
-	protected bool FailHandlePassRight()
-	{
-		KMAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, ArrowRight.transform);
-		ArrowRight.AddInteractionPunch();
-		return false;
-	}
+        if ((bool)unicornRule)
+			return new string[] { "Logic 101", "Learning To Draw", "I Like To Move It", "I Can Do Anything" }[determine - 1];
 
-	protected bool FailHandlePassSubmit()
-	{
-		KMAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, Submit.transform);
-		Submit.AddInteractionPunch();
-		return false;
-	}
+        string[] solvedModuleNames = BombInfo.GetSolvedModuleNames().ToArray();
+
+        if (solvedModuleNames.Length >= 3)
+			return "Climbing The Tower";
+
+		if(lastDigitRule == null)
+			lastDigitRule = BombInfo.GetSerialNumberNumbers().Last() > 7;
+
+        if ((bool)lastDigitRule)
+			return "The Highest Point";
+
+		if (new string[] { "3D Maze", "3D Tunnels", "Mouse In The Maze", "Maze", "Morse-A-Maze" }.Any(name => solvedModuleNames.Contains(name)))
+			return "Impossible Paths";
+
+		if (BombInfo.GetStrikes() > 0)
+			return "Failing Forward";
+
+        string[] solveableModuleNames = BombInfo.GetSolvableModuleNames().ToArray();
+        string[] unsolvedModuleNames = solveableModuleNames.Except(solvedModuleNames).ToArray();
+
+        if (new string[] { "Password", "Extended Password", "Binary Puzzle", "Symbolic Password" }.Any(name => unsolvedModuleNames.Contains(name)))
+			return "Connecting The Pieces";
+
+		if (solvedModuleNames.Length == 0)
+			return "Taking Baby Steps";
+
+		if (doubleOhRule == null)
+			doubleOhRule = new string[] { "Double-Oh", "Cursed Double-Oh" }.Any(name => solveableModuleNames.Contains(name));
+
+		if ((bool)doubleOhRule)
+			return "Three Paths Of Sight";
+
+		if (duplicateRule == null)
+			duplicateRule = solveableModuleNames.GroupBy(x => x).Any(group => group.Count() > 1);
+
+        if ((bool)duplicateRule)
+            return "Deja Vu";
+
+		return "Window Of Opportunity";
+    }
+
 
 	protected bool ModuleCompleted()
 	{
-		BombModule.HandlePass();
-		GunButton.OnInteract = FailHandlePassGun;
-		ArrowLeft.OnInteract = FailHandlePassLeft;
-		ArrowRight.OnInteract = FailHandlePassRight;
-		Submit.OnInteract = FailHandlePassSubmit;
+		ModuleSolved = true;
+        BombModule.HandlePass();
 		return false;
 	}
 
@@ -458,6 +200,11 @@ public class AntichamberModule : MonoBehaviour
 		BombModule.HandleStrike();
 		return false;
 	}
+
+	private void Log(string s)
+	{ 
+		Debug.LogFormat("[Antichamber #{0}] {1}", ModuleId, s);
+    }
 
 	//twitch plays
 #pragma warning disable 414
@@ -541,4 +288,13 @@ public class AntichamberModule : MonoBehaviour
 			yield break;
 		}
 	}
+
+	IEnumerator TwitchHandleForcedSolve()
+	{ 
+        yield return ProcessTwitchCommand(string.Format("gun {0}", gunColors[determine - 1]));
+        yield return ProcessTwitchCommand(string.Format("room {0}", GetCorrectRoom()));
+        yield return ProcessTwitchCommand("submit");
+        while (!ModuleSolved)
+            yield return null;
+    }
 }
